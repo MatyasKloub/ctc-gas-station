@@ -59,7 +59,6 @@ func main() {
 
 	loadConfig(&config)
 
-	// Vytvoření kanálu pro komunikaci mezi hlavní gorutinou a gorutinou, která přidává auta
 	carChannel := make(chan Car)
 
 	var stations []GasStation
@@ -91,21 +90,20 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(len(stations))
 
-	// Funkce pro přidání aut do pole
 	go func() {
 		tick := time.Tick(100)
 		for i := 0; i < config.Cars.Count; i++ {
-			// Čekání na tick, který signalizuje, že uplynulo 300 ms
+
 			<-tick
-			// Simulace získání dat auta
+
 			car := Car{
 				id:       i,
 				fuelType: getRandomFuelType(),
 			}
-			// Odeslání auta na kanál
+
 			carChannel <- car
 		}
-		// Zavření kanálu po dokončení práce
+
 		//fmt.Println(len(carChannel))
 		close(carChannel)
 	}()
@@ -126,16 +124,11 @@ func main() {
 		go ProcessPokladna(pokladna, &config, &wg, returnval)
 	}
 
-	// Pole pro ukládání aut
-	var cars []Car
-	// Pole pro ukládání časů příjezdu aut
-	var arrivalTimes []time.Time
-
 	// Hlavní cyklus programu
 	for {
-		// Přijetí auta z kanálu
+
 		car, ok := <-carChannel
-		// Kontrola, zda bylo něco přijato z kanálu
+
 		if !ok {
 
 			if autProjeto == config.Cars.Count-1 {
@@ -147,8 +140,7 @@ func main() {
 			// Pokud kanál je uzavřen, přestat s cyklem
 			//break
 		}
-		// Přidání auta do pole
-		cars = append(cars, car)
+
 		arrivalTime := time.Now()
 		car.timeArrival = arrivalTime
 		if car.fuelType == "gas" {
@@ -168,8 +160,6 @@ func main() {
 				lpgStations[rand.Intn(len(lpgStations))].carsQ <- car
 			}
 		}
-
-		arrivalTimes = append(arrivalTimes, arrivalTime)
 
 	}
 
